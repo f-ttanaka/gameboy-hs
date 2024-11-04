@@ -56,6 +56,17 @@ setReg8 r v regs = case r of
   H -> regs & regH .~ v
   L -> regs & regL .~ v
 
+modifyReg8 :: Reg8 -> (Word8 -> Word8) -> Registers -> Registers
+modifyReg8 r f regs = case r of
+  A -> regs & regA %~ f
+  B -> regs & regB %~ f
+  C -> regs & regC %~ f
+  D -> regs & regD %~ f
+  E -> regs & regE %~ f
+  F -> regs & regF %~ f
+  H -> regs & regH %~ f
+  L -> regs & regL %~ f
+
 getReg16 :: Reg16 -> Registers -> Word16
 getReg16 r regs = B.shiftL v1 8 B..|. v2
   where
@@ -70,9 +81,6 @@ setReg16 r v = setReg8 r1 v1 . setReg8 r2 v2
     (r1, r2) = toReg8Pair r
     v1 = fromIntegral $ B.shiftR (v B..&. 0xFF00) 8 :: Word8
     v2 = fromIntegral $ v B..&. 0xFF
-
-modifyReg8 :: Reg8 -> (Word8 -> Word8) -> Registers -> Registers
-modifyReg8 r f regs = setReg8 r (f $ getReg8 r regs) regs
 
 -- 結果のWord8とキャリーを返す
 overflowingAdd :: Word8 -> Word8 -> (Word8, Bool)

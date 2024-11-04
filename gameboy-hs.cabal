@@ -25,7 +25,10 @@ source-repository head
 
 library
   exposed-modules:
+      Bus
+      Cartridge.Internal
       Cartridge.Read
+      Cartridge.ROM
       CPU.CPU
       CPU.Error
       CPU.Exec

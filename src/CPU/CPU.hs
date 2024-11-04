@@ -1,39 +1,38 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TemplateHaskell #-}
 module CPU.CPU where
 
 import Relude
-import Control.Exception.Safe (MonadThrow, throwM)
-import CPU.Error
-import CPU.Instruction
+import Bus (Bus)
+import Control.Lens
 import CPU.Register
-import qualified Data.Bits as B
-import Data.Vector (Vector)
-import qualified Data.Vector as V
 
 -- CPU
 -- CPUM: CPU の可変な状態をまとめたもの
 -- CPUIM: 不変な状態をまとめたもの
 data CPUM = CPUM 
   {
-    registers :: Registers
-  , programCounter :: Word16
-  , stackPointer :: Word16
+    _registers :: Registers
+  , _programCounter :: Word16
+  , _stackPointer :: Word16
   }
+
+makeLenses ''CPUM
 
 newtype CPUIM = CPUIM
   {
-    bus :: Vector Word8
+    bus :: Bus
   }
 
 getRegisters :: MonadState CPUM m => m Registers
-getRegisters = registers <$> get
+getRegisters = use registers
 
 getSP :: MonadState CPUM m => m Word16
-getSP = stackPointer <$> get
+getSP = use stackPointer
 
-readByte :: CPUIM -> Word16 -> Word8
-readByte mb addr = bus mb V.! B.finiteBitSize addr
+askBus :: MonadReader CPUIM m => m Bus
+askBus = bus <$> ask
 
 -- fromByte :: MonadThrow m => Bool -> Word8 -> m Instruction
 -- fromByte prefixed r = case r of

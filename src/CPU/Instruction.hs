@@ -13,9 +13,8 @@ data InstrArg a where
   N16 :: Int16 -> InstrArg Int16
   SP :: InstrArg Word16
   SPE8 :: Int8 -> InstrArg Word16 -- SP+e8
-  HLI :: InstrArg Word8 -- address that pointed by HL and increment HL afterwards.
-  HLD :: InstrArg Word8 -- address that pointed by HL and decrement HL afterwards.
-  E8 :: Int8 -> InstrArg Word16 -- 8 bit signed value (used for SP only?)
+  HLPI :: InstrArg Word8 -- [HLI], address that pointed by HL and increment HL afterwards.
+  HLPD :: InstrArg Word8 -- [HLD] address that pointed by HL and decrement HL afterwards.
 
 -- jump condition
 data CC =
