@@ -82,9 +82,49 @@ setReg16 r v = setReg8 r1 v1 . setReg8 r2 v2
     v1 = fromIntegral $ B.shiftR (v B..&. 0xFF00) 8 :: Word8
     v2 = fromIntegral $ v B..&. 0xFF
 
+-- operations for F register
+-- zero | subtract | half carry | carry
+data Flag = ZFlag | NFlag | HFlag | CFlag
+  deriving (Show, Eq)
+
+flagBit :: Flag -> Int
+flagBit f = case f of
+  ZFlag -> 7
+  NFlag -> 6
+  HFlag -> 5
+  CFlag -> 4
+
+getFlag :: Flag -> Registers -> Bool
+getFlag f regs = B.testBit (regs ^. regF) (flagBit f)
+
+setFlag :: Flag -> Bool -> Registers -> Registers
+setFlag f b regs = regs & regF %~ setOrClearBit b (flagBit f)
+
 -- 結果のWord8とキャリーを返す
 overflowingAdd :: Word8 -> Word8 -> (Word8, Bool)
 overflowingAdd a b = (a+b, a+b < a)
+
+-- return value and flags on addition of two values
+-- returned: (result value, carry, half carry, isZero)
+addWithFlags :: (Bits a, Num a, Ord a) => a -> a -> (a, Bool, Bool, Bool)
+addWithFlags a b =
+  ( a+b
+  , a+b < a
+  , a B..&. 0xF + b B..&. 0xF > 0xF
+  , a+b == 0)
+
+-- return value and flags on addition of two values and carry
+-- returned: (result value, carry, half carry, isZero)
+addCWithFlags :: (Bits a, Num a, Ord a) => a -> a -> Bool -> (a, Bool, Bool, Bool)
+addCWithFlags x y c =
+  ( n
+  , n < x
+  , x B..&. 0xF + y B..&. 0xF + vC > 0xF
+  , n == 0)
+  where
+    vC = if c then 1 else 0
+    n = x + y + vC
+
 
 -- オーバーフローしたときに値を循環させる
 -- オーバーフローしても実行時エラーなどは起きない
