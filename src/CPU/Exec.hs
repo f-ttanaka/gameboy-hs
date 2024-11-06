@@ -85,4 +85,33 @@ execute ins = case ins of
     registers %= setFlag HFlag hCarry
     registers %= setFlag CFlag carry
     return 1
+  ADDA arg -> do
+    v <- readValue arg
+    vA <- getReg8 A <$> getRegisters
+    let (res, carry, hCarry, isZero) = addWithFlags vA v
+    registers %= setReg8 A res
+    registers %= setFlag ZFlag isZero
+    registers %= setFlag NFlag False
+    registers %= setFlag HFlag hCarry
+    registers %= setFlag CFlag carry
+    return 1
+  ADDHL arg -> do
+    v <- readValue arg
+    vHL <- readValue (R16 HL) -- HL
+    let (res, carry, hCarry, _) = addWithFlags vHL v
+    registers %= setReg16 HL res
+    registers %= setFlag NFlag False
+    registers %= setFlag HFlag hCarry
+    registers %= setFlag CFlag carry
+    return 1
+  ADDSP arg -> do
+    v <- readValue arg
+    vSP <- getSP
+    let (res, carry, hCarry, _) = addWithFlags vSP v
+    stackPointer .= res
+    registers %= setFlag ZFlag False
+    registers %= setFlag NFlag False
+    registers %= setFlag HFlag hCarry
+    registers %= setFlag CFlag carry
+    return 1
   _ -> throwString $ show ins ++ " is not implemented instruction."
